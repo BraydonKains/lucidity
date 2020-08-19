@@ -2,10 +2,10 @@
 ### Author: @BraydonKains
 
 ## General
+* Defining the CFL in Markdown sucks. LaTEX?
 * Coming up with how I will handle nested structures
 	* Curly braces are in first place for now
-* Experiment with ; vs \n vs . as line-enders
-	* . is the most interesting experiment, but I'm not convinced yet
+* Experiment with ; vs single line statements
 
 ## grammar.md
 * I need a better way to express "any number of valid expressions".
