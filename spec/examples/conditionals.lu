@@ -1,8 +1,12 @@
-int x = 0.
-if x is_an int {
-	
-}
 
+
+// Type checking conditional
+int x = 0
+if x is_an int {
+	print("x is an integer")	
+} 
+
+// Compare conditional
 if x equals 0 {
 	
 }
