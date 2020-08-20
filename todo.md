@@ -16,6 +16,7 @@
 
 ## lexer.go
 * Parse tabs?
+* Better way to split code? Probably not tbh
 ### Tasks
 [x] - lex string literals
 [] - Write unit tests
