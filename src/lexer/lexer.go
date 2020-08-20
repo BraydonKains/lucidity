@@ -6,10 +6,14 @@ Credits:
 
 "How to Write a Lexer in Go" by Aaron Raff
 Link: https://www.aaronraff.dev/blog/how-to-write-a-lexer-in-go
+I largely stole the structure of the lexer from here. I obviously had
+to adapt it a fair bit to identify all the constructs of my language,
+but without this article this lexer wouldn't have existed for a long time.
 
 "How to Write a Parser in Go" by Sugu Sougoumarane
 Link: https://www.youtube.com/watch?v=NG0s3-s3whY
 Repo: https://github.com/sougou/parser_tutorial
+This
 */
 
 package lexer
@@ -29,6 +33,10 @@ const (
 	IDENT
 	INT
 	SEMI // I'm going to lex this for now but it's up in the air if I want to in the future
+	LPAREN
+	RPAREN
+	LBRACE
+	RBRACE
 
 	// Operators
 	ADD
@@ -40,6 +48,9 @@ const (
 	// Keywords
 	IF
 	UNLESS
+	AND
+	OR
+	EQUALS
 	TRUE
 	FALSE
 
@@ -55,6 +66,10 @@ var tokens = []string{
 	IDENT:   "IDENT",
 	INT:     "INT",
 	SEMI:    ";",
+	LPAREN:  "(",
+	RPAREN:  ")",
+	LBRACE:  "{",
+	RBRACE:  "}",
 
 	ADD:    "+",
 	SUB:    "-",
@@ -64,6 +79,9 @@ var tokens = []string{
 
 	IF:     "IF",
 	UNLESS: "UNLESS",
+	AND:    "AND",
+	OR:     "OR",
+	EQUALS: "EQUALS",
 	TRUE:   "TRUE",
 	FALSE:  "FALSE",
 
@@ -75,6 +93,9 @@ var tokens = []string{
 var keywords = map[string]Token{
 	"if":      IF,
 	"unless":  UNLESS,
+	"and":     AND,
+	"or":      OR,
+	"equals":  EQUALS,
 	"true":    TRUE,
 	"false":   FALSE,
 	"int":     TYPEINT,
@@ -119,6 +140,24 @@ func (l *Lexer) Lex() (Position, Token, string) {
 		switch r {
 		case '\n':
 			l.nextLine()
+		case ';':
+			return l.pos, SEMI, ";"
+		case '(':
+			return l.pos, LPAREN, "("
+		case ')':
+			return l.pos, RPAREN, ")"
+		case '{':
+			return l.pos, LBRACE, "{"
+		case '}':
+			return l.pos, RBRACE, "}"
+		case '+':
+			return l.pos, ADD, "+"
+		case '-':
+			return l.pos, SUB, "-"
+		case '*':
+			return l.pos, MUL, "*"
+		case '/':
+			return l.pos, DIV, "/"
 		case '=':
 			return l.pos, ASSIGN, "="
 		default:
@@ -129,7 +168,7 @@ func (l *Lexer) Lex() (Position, Token, string) {
 				l.backup()
 				literal := l.lexInt()
 				return startPos, INT, literal
-			} else if unicode.IsLetter(r) {
+			} else if unicode.IsLetter(r) || r == '_' {
 				startPos := l.pos
 				l.backup()
 				literal, token := l.lexLetter()
@@ -184,6 +223,7 @@ func (l *Lexer) lexLetter() (string, Token) {
 		if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' {
 			literal += string(r)
 		} else {
+			l.backup()
 			if token, ok := keywords[literal]; ok {
 				return literal, token
 			} else {

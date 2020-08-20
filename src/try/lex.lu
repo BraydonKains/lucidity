@@ -1,3 +1,4 @@
 int x = 0
-string yes = 123
-boolean test = true
+if x equals 0 {
+	die()	
+}
