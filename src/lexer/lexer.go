@@ -33,10 +33,14 @@ const (
 	IDENT
 	INT
 	SEMI // I'm going to lex this for now but it's up in the air if I want to in the future
+	LF
 	LPAREN
 	RPAREN
 	LBRACE
 	RBRACE
+	DQUOTE // Wait do I even need this
+	COMMA
+	STRLITERAL
 
 	// Operators
 	ADD
@@ -61,15 +65,19 @@ const (
 )
 
 var tokens = []string{
-	EOF:     "EOF",
-	ILLEGAL: "ILLEGAL",
-	IDENT:   "IDENT",
-	INT:     "INT",
-	SEMI:    ";",
-	LPAREN:  "(",
-	RPAREN:  ")",
-	LBRACE:  "{",
-	RBRACE:  "}",
+	EOF:        "EOF",
+	ILLEGAL:    "ILLEGAL",
+	LF:         "LF",
+	IDENT:      "IDENT",
+	INT:        "INT",
+	SEMI:       ";",
+	LPAREN:     "(",
+	RPAREN:     ")",
+	LBRACE:     "{",
+	RBRACE:     "}",
+	DQUOTE:     "\"",
+	COMMA:      ",",
+	STRLITERAL: "STRLITERAL",
 
 	ADD:    "+",
 	SUB:    "-",
@@ -88,6 +96,20 @@ var tokens = []string{
 	TYPEINT:  "TYPEINT",
 	TYPESTR:  "TYPESTR",
 	TYPEBOOL: "TYPEBOOL",
+}
+
+var terminal_symbols = map[rune]Token{
+	';': SEMI,
+	'(': LPAREN,
+	')': RPAREN,
+	'{': LBRACE,
+	'}': RBRACE,
+	'+': ADD,
+	'-': SUB,
+	'*': MUL,
+	'/': DIV,
+	'=': ASSIGN,
+	',': COMMA,
 }
 
 var keywords = map[string]Token{
@@ -126,6 +148,8 @@ func NewLexer(reader io.Reader) *Lexer {
 
 func (l *Lexer) Lex() (Position, Token, string) {
 	for {
+		startPos := l.pos
+
 		r, _, err := l.reader.ReadRune()
 		if err != nil {
 			if err == io.EOF {
@@ -137,42 +161,36 @@ func (l *Lexer) Lex() (Position, Token, string) {
 
 		l.pos.column++
 
-		switch r {
-		case '\n':
+		if r == '\n' {
 			l.nextLine()
-		case ';':
-			return l.pos, SEMI, ";"
-		case '(':
-			return l.pos, LPAREN, "("
-		case ')':
-			return l.pos, RPAREN, ")"
-		case '{':
-			return l.pos, LBRACE, "{"
-		case '}':
-			return l.pos, RBRACE, "}"
-		case '+':
-			return l.pos, ADD, "+"
-		case '-':
-			return l.pos, SUB, "-"
-		case '*':
-			return l.pos, MUL, "*"
-		case '/':
-			return l.pos, DIV, "/"
-		case '=':
-			return l.pos, ASSIGN, "="
-		default:
-			if unicode.IsSpace(r) {
-				continue
-			} else if unicode.IsDigit(r) {
-				startPos := l.pos
-				l.backup()
-				literal := l.lexInt()
-				return startPos, INT, literal
-			} else if unicode.IsLetter(r) || r == '_' {
-				startPos := l.pos
-				l.backup()
-				literal, token := l.lexLetter()
-				return startPos, token, literal
+			return startPos, LF, "\\n"
+		}
+
+		if token, ok := terminal_symbols[r]; ok {
+			return l.pos, token, string(r)
+		}
+
+		if unicode.IsSpace(r) {
+			continue
+		}
+
+		if unicode.IsDigit(r) {
+			l.backup()
+			literal := l.lexInt()
+			return startPos, INT, literal
+		}
+
+		if unicode.IsLetter(r) || r == '_' {
+			l.backup()
+			literal, token := l.lexLetter()
+			return startPos, token, literal
+		}
+
+		if r == '"' {
+			if literal := l.lexStrLiteral(); literal[len(literal)-1:] == "\"" {
+				return startPos, STRLITERAL, literal
+			} else {
+				return startPos, ILLEGAL, literal
 			}
 		}
 	}
@@ -204,6 +222,7 @@ func (l *Lexer) lexInt() string {
 		if unicode.IsDigit(r) {
 			literal += string(r)
 		} else {
+			l.backup()
 			return literal
 		}
 
@@ -232,5 +251,22 @@ func (l *Lexer) lexLetter() (string, Token) {
 		}
 
 		l.pos.column++
+	}
+}
+
+func (l *Lexer) lexStrLiteral() string {
+	literal := "\""
+
+	for {
+		r, _, err := l.reader.ReadRune()
+		if err == io.EOF {
+			return literal
+		}
+
+		literal += string(r)
+
+		if r == '"' {
+			return literal
+		}
 	}
 }
