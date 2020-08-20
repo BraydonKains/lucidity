@@ -12,3 +12,6 @@
 * Reserved type words uppercased or not?
 	* I eventually want custom types, so enforcing those as uppercase instead might be more readable
 * Do I want the mix type?
+
+## lexer.go
+[] - lex string literals
