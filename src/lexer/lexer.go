@@ -20,11 +20,30 @@ package lexer
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"unicode"
 )
 
-type Token int
+type TokenId int
+
+type Position struct {
+	line   int
+	column int
+}
+
+type Lexer struct {
+	filename string
+	pos      Position
+	reader   *bufio.Reader
+}
+
+type Token struct {
+	file    string
+	pos     Position
+	id      TokenId
+	literal string
+}
 
 const (
 	// General
@@ -98,7 +117,7 @@ var tokens = []string{
 	TYPEBOOL: "TYPEBOOL",
 }
 
-var terminal_symbols = map[rune]Token{
+var terminal_symbols = map[rune]TokenId{
 	';': SEMI,
 	'(': LPAREN,
 	')': RPAREN,
@@ -112,7 +131,7 @@ var terminal_symbols = map[rune]Token{
 	',': COMMA,
 }
 
-var keywords = map[string]Token{
+var keywords = map[string]TokenId{
 	"if":      IF,
 	"unless":  UNLESS,
 	"and":     AND,
@@ -125,35 +144,39 @@ var keywords = map[string]Token{
 	"boolean": TYPEBOOL,
 }
 
-func (t Token) String() string {
+func (t TokenId) String() string {
 	return tokens[t]
 }
 
-type Position struct {
-	line   int
-	column int
+func (t Token) String() string {
+	return fmt.Sprintf("%s: %d %s %s ", t.file, t.pos, t.id, t.literal)
 }
 
-type Lexer struct {
-	pos    Position
-	reader *bufio.Reader
+func (t Token) Is(id TokenId) bool {
+	return t.id == id
 }
 
-func NewLexer(reader io.Reader) *Lexer {
+// func newToken(file string, pos Position, id TokenId, literal string) Token {
+
+// }
+
+func NewLexer(reader *bufio.Reader, filename string) *Lexer {
 	return &Lexer{
-		pos:    Position{line: 1, column: 0},
-		reader: bufio.NewReader(reader),
+		filename: filename,
+		pos:      Position{line: 1, column: 0},
+		reader:   reader,
 	}
 }
 
-func (l *Lexer) Lex() (Position, Token, string) {
+func (l *Lexer) Lex() Token {
+	file := l.filename
 	for {
 		startPos := l.pos
 
 		r, _, err := l.reader.ReadRune()
 		if err != nil {
 			if err == io.EOF {
-				return l.pos, EOF, ""
+				return Token{file, startPos, EOF, ""}
 			}
 
 			panic(err)
@@ -163,11 +186,11 @@ func (l *Lexer) Lex() (Position, Token, string) {
 
 		if r == '\n' {
 			l.nextLine()
-			return startPos, LF, "\\n"
+			return Token{file, startPos, LF, "\\n"}
 		}
 
 		if token, ok := terminal_symbols[r]; ok {
-			return l.pos, token, string(r)
+			return Token{file, startPos, token, string(r)}
 		}
 
 		if unicode.IsSpace(r) {
@@ -177,20 +200,20 @@ func (l *Lexer) Lex() (Position, Token, string) {
 		if unicode.IsDigit(r) {
 			l.backup()
 			literal := l.lexInt()
-			return startPos, INT, literal
+			return Token{file, startPos, INT, literal}
 		}
 
 		if unicode.IsLetter(r) || r == '_' {
 			l.backup()
 			literal, token := l.lexLetter()
-			return startPos, token, literal
+			return Token{file, startPos, token, literal}
 		}
 
 		if r == '"' {
 			if literal := l.lexStrLiteral(); literal[len(literal)-1:] == "\"" {
-				return startPos, STRLITERAL, literal
+				return Token{file, startPos, STRLITERAL, literal}
 			} else {
-				return startPos, ILLEGAL, literal
+				return Token{file, startPos, ILLEGAL, literal}
 			}
 		}
 	}
@@ -230,7 +253,7 @@ func (l *Lexer) lexInt() string {
 	}
 }
 
-func (l *Lexer) lexLetter() (string, Token) {
+func (l *Lexer) lexLetter() (string, TokenId) {
 	var literal string
 
 	for {

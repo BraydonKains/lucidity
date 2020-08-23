@@ -8,17 +8,18 @@ import (
 )
 
 func TryLex() {
-	file, err := os.Open("./src/try/lex.lu")
+	test_file := "./src/try/lex.lu"
+	file, err := os.Open(test_file)
 	if err != nil {
 		panic(err)
 	}
 	reader := bufio.NewReader(file)
-	l := lexer.NewLexer(reader)
+	l := lexer.NewLexer(reader, test_file)
 
 	for {
-		pos, token, literal := l.Lex()
-		fmt.Println(pos, token, literal)
-		if token == lexer.EOF {
+		token := l.Lex()
+		fmt.Println(token)
+		if token.Is(lexer.EOF) {
 			return
 		}
 	}
