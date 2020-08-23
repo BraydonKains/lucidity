@@ -2,8 +2,10 @@ package main
 
 import (
 	"./src/try"
+	"fmt"
 )
 
 func main() {
-	try.TryLex()
+	tokens := try.TryLex()
+	fmt.Println(try.TryParse(tokens))
 }

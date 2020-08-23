@@ -156,7 +156,7 @@ func (t Token) Is(id TokenId) bool {
 	return t.id == id
 }
 
-func NewLexer(reader *bufio.Reader, filename string) *Lexer {
+func NewLexer(filename string, reader *bufio.Reader) *Lexer {
 	return &Lexer{
 		filename: filename,
 		pos:      Position{line: 1, column: 0},
