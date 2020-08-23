@@ -14,6 +14,7 @@ import (
 type Parser struct {
 	tokens []Token
 	pos    int
+	end    int
 }
 
 func (p *Parser) ReadToken() Token {
@@ -22,9 +23,23 @@ func (p *Parser) ReadToken() Token {
 	return token
 }
 
+func newParser(tokens []Token) Parser {
+	return Parser{tokens, 0, len(tokens)}
+}
+
 func ParseValidity(tokens []Token) bool {
 	for _, token := range tokens {
 		fmt.Println(token)
 	}
-	return true
+
+	// p := newParser(tokens)
+
+	for {
+		// token := p.ReadToken()
+		// if token.IsType() {
+		// 	p.parseAssignment()
+		// }
+
+		return true
+	}
 }

@@ -20,140 +20,14 @@ package compiler
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"unicode"
 )
-
-type TokenId int
-
-type Position struct {
-	line   int
-	column int
-}
 
 type Lexer struct {
 	filename string
 	pos      Position
 	reader   *bufio.Reader
-}
-
-type Token struct {
-	file    string
-	pos     Position
-	id      TokenId
-	literal string
-}
-
-const (
-	// General
-	EOF = iota
-	ILLEGAL
-	IDENT
-	INT
-	SEMI // I'm going to lex this for now but it's up in the air if I want to in the future
-	LF
-	LPAREN
-	RPAREN
-	LBRACE
-	RBRACE
-	DQUOTE // Wait do I even need this
-	COMMA
-	STRLITERAL
-
-	// Operators
-	ADD
-	SUB
-	MUL
-	DIV
-	ASSIGN
-
-	// Keywords
-	IF
-	UNLESS
-	AND
-	OR
-	EQUALS
-	TRUE
-	FALSE
-
-	// Types
-	TYPEINT
-	TYPESTR
-	TYPEBOOL
-)
-
-var tokens = []string{
-	EOF:        "EOF",
-	ILLEGAL:    "ILLEGAL",
-	LF:         "LF",
-	IDENT:      "IDENT",
-	INT:        "INT",
-	SEMI:       ";",
-	LPAREN:     "(",
-	RPAREN:     ")",
-	LBRACE:     "{",
-	RBRACE:     "}",
-	DQUOTE:     "\"",
-	COMMA:      ",",
-	STRLITERAL: "STRLITERAL",
-
-	ADD:    "+",
-	SUB:    "-",
-	MUL:    "*",
-	DIV:    "/",
-	ASSIGN: "=",
-
-	IF:     "IF",
-	UNLESS: "UNLESS",
-	AND:    "AND",
-	OR:     "OR",
-	EQUALS: "EQUALS",
-	TRUE:   "TRUE",
-	FALSE:  "FALSE",
-
-	TYPEINT:  "TYPEINT",
-	TYPESTR:  "TYPESTR",
-	TYPEBOOL: "TYPEBOOL",
-}
-
-var terminal_symbols = map[rune]TokenId{
-	';': SEMI,
-	'(': LPAREN,
-	')': RPAREN,
-	'{': LBRACE,
-	'}': RBRACE,
-	'+': ADD,
-	'-': SUB,
-	'*': MUL,
-	'/': DIV,
-	'=': ASSIGN,
-	',': COMMA,
-}
-
-var keywords = map[string]TokenId{
-	"if":      IF,
-	"unless":  UNLESS,
-	"and":     AND,
-	"or":      OR,
-	"equals":  EQUALS,
-	"true":    TRUE,
-	"false":   FALSE,
-	"int":     TYPEINT,
-	"string":  TYPESTR,
-	"boolean": TYPEBOOL,
-}
-
-func (t TokenId) String() string {
-	return tokens[t]
-}
-
-func (t Token) String() string {
-	return fmt.Sprintf("%s: %d %s %s ", t.file, t.pos, t.id, t.literal)
-}
-
-func (t Token) Is(id TokenId) bool {
-	return t.id == id
 }
 
 func NewLexer(filename string, reader *bufio.Reader) *Lexer {
@@ -185,7 +59,7 @@ func (l *Lexer) Lex() Token {
 			return Token{file, startPos, LF, "\\n"}
 		}
 
-		if token, ok := terminal_symbols[r]; ok {
+		if token, ok := terminalSymbols[r]; ok {
 			return Token{file, startPos, token, string(r)}
 		}
 
