@@ -5,25 +5,24 @@ Author: @BraydonKains
 I have no idea what I'm doing
 */
 
-package parser
+package compiler
 
 import (
-	"../lexer/"
 	"fmt"
 )
 
 type Parser struct {
-	tokens []lexer.Token
+	tokens []Token
 	pos    int
 }
 
-func (p *Parser) ReadToken() lexer.Token {
+func (p *Parser) ReadToken() Token {
 	token := p.tokens[p.pos]
 	p.pos += 1
 	return token
 }
 
-func ParseValidity(tokens []lexer.Token) bool {
+func ParseValidity(tokens []Token) bool {
 	for _, token := range tokens {
 		fmt.Println(token)
 	}

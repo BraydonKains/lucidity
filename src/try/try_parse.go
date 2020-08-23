@@ -1,10 +1,9 @@
 package try
 
 import (
-	"../lexer"
-	"../parser"
+	"../compiler"
 )
 
-func TryParse(tokens []lexer.Token) bool {
-	return parser.ParseValidity(tokens)
+func TryParse(tokens []compiler.Token) bool {
+	return compiler.ParseValidity(tokens)
 }

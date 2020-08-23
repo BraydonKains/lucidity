@@ -16,7 +16,7 @@ Repo: https://github.com/sougou/parser_tutorial
 This
 */
 
-package lexer
+package compiler
 
 import (
 	"bufio"
