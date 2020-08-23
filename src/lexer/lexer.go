@@ -156,10 +156,6 @@ func (t Token) Is(id TokenId) bool {
 	return t.id == id
 }
 
-// func newToken(file string, pos Position, id TokenId, literal string) Token {
-
-// }
-
 func NewLexer(reader *bufio.Reader, filename string) *Lexer {
 	return &Lexer{
 		filename: filename,
