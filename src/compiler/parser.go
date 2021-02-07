@@ -1,8 +1,6 @@
 /*
 parser.go
 Author: @BraydonKains
-
-I have no idea what I'm doing
 */
 
 package compiler
@@ -32,32 +30,24 @@ func (p *Parser) peekToken() Token {
 	return p.tokens[p.pos]
 }
 
-func (p *Parser) parseAssignment() ([]Token, error) {
-	tokens := make([]Token, 0)
-	for {
-		token := p.readToken()
-
-	}
-	return nil, nil
-}
-
 func ParseValidity(tokens []Token) bool {
 	for _, token := range tokens {
 		fmt.Println(token)
 	}
 
-	p := newParser(tokens)
+	parser := newParser(tokens)
 
-	for {
-		token := p.peekToken()
-		if token.IsType() {
-			_, err := p.parseAssignment()
+	for parser.pos <= parser.end {
+		token := parser.peekToken()
+		switch {
+		case token.IsType():
+			err := parser.parseAssignment()
 			if err != nil {
 				fmt.Println(err)
 				return false
 			}
 		}
-
-		return true
 	}
+
+	return true
 }

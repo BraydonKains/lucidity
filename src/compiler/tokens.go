@@ -104,14 +104,18 @@ var terminalSymbols = map[rune]TokenId{
 	',': COMMA,
 }
 
-var keywords = map[string]TokenId{
-	"if":      IF,
-	"unless":  UNLESS,
-	"and":     AND,
-	"or":      OR,
-	"equals":  EQUALS,
-	"true":    TRUE,
-	"false":   FALSE,
+var controlKeywords = map[string]TokenId{
+	"if":     IF,
+	"unless": UNLESS,
+	"and":    AND,
+	"or":     OR,
+	"not":    NOT,
+	"equals": EQUALS,
+	"true":   TRUE,
+	"false":  FALSE,
+}
+
+var typeKeywords = map[string]TokenId{
 	"int":     TYPEINT,
 	"string":  TYPESTR,
 	"boolean": TYPEBOOL,
@@ -130,27 +134,13 @@ func (t Token) Is(id TokenId) bool {
 }
 
 func (t Token) IsKeyword() bool {
-	switch t.id {
-	case
-		IF,
-		UNLESS,
-		AND,
-		OR,
-		EQUALS,
-		TRUE,
-		FALSE:
-		return true
-	}
-	return false
+	_, controlOk := controlKeywords[t.id]
+	_, typeOk := typeKeywords[t.id]
+
+	return controlOk || typeOk
 }
 
 func (t Token) IsType() bool {
-	switch t.id {
-	case
-		TYPEINT,
-		TYPESTR,
-		TYPEBOOL:
-		return true
-	}
-	return false
+	_, ok := typeKeywords[t.id]
+	return ok
 }

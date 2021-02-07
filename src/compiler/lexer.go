@@ -136,7 +136,7 @@ func (l *Lexer) lexLetter() (string, TokenId) {
 			literal += string(r)
 		} else {
 			l.backup()
-			if token, ok := keywords[literal]; ok {
+			if token, ok := controlKeywords[literal]; ok {
 				return literal, token
 			} else {
 				return literal, IDENT
